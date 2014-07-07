@@ -15,14 +15,14 @@
  */
 package org.raml.jaxrs.codegen.core;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.jsonschema2pojo.AnnotationStyle;
 import org.jsonschema2pojo.DefaultGenerationConfig;
 import org.jsonschema2pojo.GenerationConfig;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Configuration
 {
@@ -55,6 +55,7 @@ public class Configuration
         }
     };
 
+    private boolean generateInterfaces = true;
     private File outputDirectory;
     private JaxrsVersion jaxrsVersion = JaxrsVersion.JAXRS_1_1;
     private String basePackageName;
@@ -111,6 +112,10 @@ public class Configuration
     {
         return jaxrsVersion;
     }
+
+    public boolean getGenerateInterfaces() { return generateInterfaces; }
+
+    public void setGenerateInterfaces(final boolean generateInterfaces) { this.generateInterfaces = generateInterfaces; }
 
     public void setJaxrsVersion(final JaxrsVersion jaxrsVersion)
     {

@@ -15,54 +15,31 @@
  */
 package org.raml.jaxrs.codegen.core;
 
-import static org.raml.jaxrs.codegen.core.Constants.JAXRS_HTTP_METHODS;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.net.URL;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.ws.rs.HttpMethod;
-
+import com.google.common.io.Files;
+import com.sun.codemodel.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.jsonschema2pojo.AnnotatorFactory;
-import org.jsonschema2pojo.GenerationConfig;
-import org.jsonschema2pojo.SchemaGenerator;
-import org.jsonschema2pojo.SchemaMapper;
-import org.jsonschema2pojo.SchemaStore;
+import org.jsonschema2pojo.*;
 import org.jsonschema2pojo.rules.RuleFactory;
 import org.raml.model.Raml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Files;
-import com.sun.codemodel.JAnnotatable;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JPackage;
-import com.sun.codemodel.JType;
+import javax.ws.rs.HttpMethod;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.lang.annotation.*;
+import java.net.URL;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.raml.jaxrs.codegen.core.Constants.JAXRS_HTTP_METHODS;
 
 class Context
 {
@@ -222,6 +199,24 @@ class Context
         return pkg._interface(actualName);
     }
 
+    public JDefinedClass createResourceClass(final String name) throws Exception
+    {
+        String actualName;
+        int i = -1;
+        while (true)
+        {
+            actualName = name + (++i == 0 ? "" : Integer.toString(i));
+            if (!resourcesMethods.containsKey(actualName))
+            {
+                resourcesMethods.put(actualName, new HashSet<String>());
+                break;
+            }
+        }
+
+        final JPackage pkg = codeModel._package(configuration.getBasePackageName() + ".resource");
+        return pkg._class(actualName);
+    }
+
     public JMethod createResourceMethod(final JDefinedClass resourceInterface,
                                         final String methodName,
                                         final JType returnType)
@@ -240,7 +235,7 @@ class Context
             }
         }
 
-        return resourceInterface.method(JMod.NONE, returnType, actualMethodName);
+        return resourceInterface.method(JMod.PUBLIC, returnType, actualMethodName);
     }
 
     public JDefinedClass createResourceEnum(final JDefinedClass resourceInterface,
